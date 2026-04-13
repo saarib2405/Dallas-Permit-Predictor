@@ -313,14 +313,7 @@ LANDING_HTML = """
     <div class="page">
         <div class="header">
             <h1>Dallas Permit Value Predictor</h1>
-            <p class="subtitle">Two-Stage Hurdle Model <span class="badge">LIVE</span></p>
-        </div>
-
-        <div class="stats-bar">
-            <div class="stat"><div class="val">126K</div><div class="label">Training Records</div></div>
-            <div class="stat"><div class="val">63</div><div class="label">Features</div></div>
-            <div class="stat"><div class="val">97.7%</div><div class="label">Classifier Accuracy</div></div>
-            <div class="stat"><div class="val">0.866</div><div class="label">R&sup2; Score</div></div>
+            <p class="subtitle">Predict building permit construction costs</p>
         </div>
 
         <!-- Prediction Form -->

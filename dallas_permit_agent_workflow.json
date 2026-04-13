@@ -1,0 +1,140 @@
+{
+  "name": "Dallas Permit Value Predictor Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "dallas-permit-chat-trigger"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the Dallas Permit Value Predictor assistant. You help urban planners and contractors estimate building permit construction values in Dallas, TX.\n\nWhen the user describes a permit, extract these fields and call the predict tool:\n- permit_category: one of [Building, Electrical, Plumbing, Mechanical, Fence, Swimming Pool]\n- sub_category: one of [Single Family, Multi Family, Commercial]\n- work_type: one of [New Construction, Alteration, Renovation, Addition]\n- occupancy_type: land use description (e.g. 'Single Family Dwelling', 'Office Building', 'Multi-Family Dwelling')\n- zip_code: 5-digit Dallas ZIP as a string (default '75201' if unknown)\n- area_sqft: square footage as a number (default 0 if not mentioned)\n- contractor_city: city where contractor is based (default 'Dallas' if unknown)\n- issue_month: month as integer 1-12 (use current month if not specified)\n\nALWAYS call the predict tool when the user provides permit details. Do not guess the value yourself.\n\nAfter getting the prediction, explain the result clearly:\n- State the predicted value in dollars\n- Mention if it was classified as an administrative (zero-value) or construction permit\n- Share the 95% confidence interval range\n- Keep it conversational and non-technical\n- If the model returns $0, explain that this permit type is administrative and has no declared construction value"
+        }
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [380, 500],
+      "credentials": {
+        "googlePalmApi": {
+          "name": "Google Gemini account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to predict the construction value of a Dallas building permit. Provide all extracted permit fields as input.",
+        "method": "POST",
+        "url": "https://dallas-permit-predictor.onrender.com/predict",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "permit_category",
+              "value": "={{ $fromAI('permit_category', 'The permit category, e.g. Building, Electrical, Plumbing', 'string') }}"
+            },
+            {
+              "name": "sub_category",
+              "value": "={{ $fromAI('sub_category', 'Sub-category: Single Family, Multi Family, or Commercial', 'string') }}"
+            },
+            {
+              "name": "work_type",
+              "value": "={{ $fromAI('work_type', 'Work type: New Construction, Alteration, Renovation, or Addition', 'string') }}"
+            },
+            {
+              "name": "occupancy_type",
+              "value": "={{ $fromAI('occupancy_type', 'Land use description e.g. Single Family Dwelling or Office Building', 'string') }}"
+            },
+            {
+              "name": "zip_code",
+              "value": "={{ $fromAI('zip_code', '5-digit Dallas ZIP code as string', 'string') }}"
+            },
+            {
+              "name": "area_sqft",
+              "value": "={{ $fromAI('area_sqft', 'Square footage as a number, 0 if not mentioned', 'number') }}"
+            },
+            {
+              "name": "contractor_city",
+              "value": "={{ $fromAI('contractor_city', 'City where the contractor is based, default Dallas', 'string') }}"
+            },
+            {
+              "name": "issue_month",
+              "value": "={{ $fromAI('issue_month', 'Month as integer 1-12', 'number') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Predict Permit Value",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [620, 500]
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Predict Permit Value": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {}
+}
