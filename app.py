@@ -45,9 +45,11 @@ with open(os.path.join(MODEL_DIR, "encoders.json"), "r") as f:
     ENC = json.load(f)
 
 FEATURE_COLS = ENC["feature_cols"]
+FEATURE_COLS_REG = ENC.get("feature_cols_reg", [c for c in FEATURE_COLS if c != "area_value_ratio"])
 print(f"  Stage 1 classifier loaded")
 print(f"  Stage 2 regressor loaded")
-print(f"  Feature vector size: {len(FEATURE_COLS)}")
+print(f"  Stage 1 feature vector size: {len(FEATURE_COLS)}")
+print(f"  Stage 2 feature vector size: {len(FEATURE_COLS_REG)}")
 
 # ============================================================================
 # PERMIT TYPE PARSER (mirrors data_cleaning.py logic)
@@ -592,13 +594,16 @@ def predict():
         if missing:
             return jsonify({"error": f"Missing required fields: {missing}"}), 400
         
-        # Build feature vector
+        # Build feature vector (63 features for Stage 1)
         feature_vector, parsed_permit = build_feature_vector(data)
-        X = feature_vector.reshape(1, -1)
+        X_cls = feature_vector.reshape(1, -1)
+        
+        # Build Stage 2 feature vector (62 features — excludes area_value_ratio)
+        X_reg = np.array([feature_vector[FEATURE_COLS.index(c)] for c in FEATURE_COLS_REG], dtype=np.float64).reshape(1, -1)
         
         # Stage 1: Classify zero vs. positive
-        stage1_pred = int(stage1_clf.predict(X)[0])
-        stage1_prob = float(stage1_clf.predict_proba(X)[0][1])  # P(zero-value)
+        stage1_pred = int(stage1_clf.predict(X_cls)[0])
+        stage1_prob = float(stage1_clf.predict_proba(X_cls)[0][1])  # P(zero-value)
         
         if stage1_pred == 1:
             # Administrative / zero-value permit
@@ -625,8 +630,8 @@ def predict():
                 }
             }
         else:
-            # Positive-value construction permit — run Stage 2
-            log_value_pred = float(stage2_reg.predict(X)[0])
+            # Positive-value construction permit — run Stage 2 with 62-feature vector
+            log_value_pred = float(stage2_reg.predict(X_reg)[0])
             value_usd = float(np.exp(log_value_pred))
             
             # Confidence band (approximate using training RMSE = 0.685)

@@ -677,6 +677,3 @@ def convert(obj):
 
 with open("models/model_comparison.json", "w") as f:
     json.dump(comparison, f, indent=2, default=convert)
-
-print(f"\n  Model comparison saved to: models/model_comparison.json")
-print(f"\n  Pipeline complete. Ready for Phase 3: Report, Flask API, n8n Agent.")
