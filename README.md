@@ -1,7 +1,5 @@
 # Dallas Building Permit Value Predictor
 
-> **ASDS 6302 Final Project** — Predict construction permit values for the City of Dallas using a Two-Stage Hurdle Model with XGBoost, deployed as a REST API with an AI-powered Telegram chatbot.
-
 **Live API:** [https://dallas-permit-predictor.onrender.com](https://dallas-permit-predictor.onrender.com)
 
 ---
@@ -143,7 +141,3 @@ python save_encoders.py          # Step 4: Export encoders for API
 - **9 Permit Archetypes:** Identified via K-Means clustering (from low-value residential to mega-projects)
 
 ---
-
-## Author
-
-**Saarib** — ASDS 6302, University of Texas at Dallas
