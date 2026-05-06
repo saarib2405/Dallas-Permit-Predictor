@@ -118,7 +118,7 @@ python save_encoders.py          # Step 4: Export encoders for API
 | Interpretability | SHAP (TreeExplainer) |
 | API | Flask 3.1 + gunicorn |
 | Hosting | Render (Free Tier) |
-| AI Agent | n8n + Google Gemini 1.5 Flash |
+| AI Agent | n8n |
 | Chat Interface | Telegram Bot API |
 | Tunnel | ngrok (for local webhook dev) |
 
